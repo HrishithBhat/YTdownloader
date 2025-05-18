@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YouTube Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo" />
+        <h1>YouTube Video Downloader</h1>
+        <form action="/download" method="post">
+            <input type="text" name="url" placeholder="Enter YouTube URL" required>
+            <button type="submit">Download</button>
+        </form>
+        <div class="progress-section">
+            <div class="progress-bar-bg">
+                <div id="progress-bar" class="progress-bar-fill"></div>
+            </div>
+            <p id="progress-text">Progress: 0%</p>
+        </div>
+    </div>
+
+    <script>
+      const evtSource = new EventSource("/progress");
+      evtSource.onmessage = function(event) {
+          if (event.data === "DONE") {
+              document.getElementById("progress-text").innerText = "✅ Download complete!";
+              evtSource.close();
+              return;
+          }
+          if (event.data.startsWith("ERROR")) {
+              document.getElementById("progress-text").innerText = event.data;
+              evtSource.close();
+              return;
+          }
+          // Clean and format the progress percentage
+          const percent = event.data.trim().replace(/[\[\]]/g, '');
+          const widthValue = percent.endsWith('%') ? percent : percent + '%';
+          document.getElementById("progress-bar").style.width = widthValue;
+          document.getElementById("progress-text").innerText = `Progress: ${widthValue}`;
+      };
+  </script>
+  
+</body>
+</html>
